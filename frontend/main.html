@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Language ToDo - Program Manager</title>
+<style>
+  html,body{height:100%}
+  body{background:#008080;font:13px "MS Sans Serif",Tahoma,Geneva,sans-serif;color:#000;margin:0;padding:22px}
+  .win{background:#c0c0c0;border:1px solid #000;padding:3px;max-width:760px;margin:0 auto;
+    box-shadow:inset -1px -1px #808080,inset 1px 1px #dfdfdf,inset -2px -2px #404040,inset 2px 2px #fff}
+  .title{background:#000080;color:#fff;font-weight:bold;padding:4px 7px;display:flex;align-items:center;justify-content:space-between}
+  .title .b{display:inline-block;min-width:18px;height:15px;margin-left:3px;padding:0 2px;background:#c0c0c0;border:1px solid #000;
+    color:#000;font-weight:bold;text-align:center;line-height:13px;box-shadow:inset -1px -1px #808080,inset 1px 1px #fff}
+  .menu{padding:3px 8px;border-bottom:1px solid #808080;color:#000}
+  .menu span{margin-right:14px}
+  .menu u{text-decoration:underline}
+  .body{padding:14px}
+  .intro{margin:0 0 14px;line-height:1.5}
+  .intro b{font-weight:bold}
+  .group{background:#c0c0c0;border:1px solid #808080;margin-bottom:14px;padding:8px;
+    box-shadow:inset 1px 1px #fff,inset -1px -1px #808080}
+  .group h2{font-size:13px;margin:0 0 8px;padding:2px 4px;background:#000080;color:#fff;display:inline-block}
+  .icons{display:flex;flex-wrap:wrap;gap:14px}
+  .icon{width:140px;background:transparent;border:1px dotted transparent;padding:8px 6px;text-align:center;cursor:pointer}
+  .icon:hover,.icon:focus{border:1px dotted #fff;outline:none}
+  .icon .glyph{width:48px;height:42px;margin:0 auto 6px;background:#fff;border:1px solid #000;
+    box-shadow:inset -1px -1px #808080,inset 1px 1px #dfdfdf;position:relative}
+  .icon .glyph::before{content:"";position:absolute;left:6px;top:6px;right:6px;height:5px;background:#000080}
+  .icon .glyph::after{content:"";position:absolute;left:6px;top:15px;right:10px;bottom:7px;
+    background:repeating-linear-gradient(#808080 0 1px,transparent 1px 5px)}
+  .icon.fw .glyph::before{background:#800000}
+  .icon .lang{font-weight:bold}
+  .icon .fwname{color:#000080}
+  .icon.fw .fwname{color:#800000}
+  .icon .kind{font-size:11px;color:#404040}
+  .status{margin:4px 3px 3px;padding:4px 8px;background:#c0c0c0;border:1px solid #808080;
+    box-shadow:inset 1px 1px #404040,inset -1px -1px #fff;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .note{font-size:11px;color:#404040;margin-top:10px;line-height:1.5}
+  code{font-family:"Courier New",monospace;background:#fff;border:1px solid #808080;padding:0 3px}
+</style>
+</head>
+<body>
+
+<!-- ============================================================= -->
+<!--  設定: デプロイ後、各 Cloud Run サービスの URL に貼り替える       -->
+<!--  例: https://node-vanilla-abcd123-an.a.run.app                  -->
+<!-- ============================================================= -->
+<script>
+  const SERVICES = [
+    { lang: "Node.js", fw: "Vanilla (http)", kind: "vanilla",   url: "https://node-vanilla-REPLACE-ME.run.app" },
+    { lang: "Node.js", fw: "Express",        kind: "framework", url: "https://node-express-REPLACE-ME.run.app" },
+    { lang: "Python",  fw: "Vanilla (http.server)", kind: "vanilla",   url: "https://python-vanilla-REPLACE-ME.run.app" },
+    { lang: "Python",  fw: "Flask",          kind: "framework", url: "https://python-flask-REPLACE-ME.run.app" },
+    { lang: "Go",      fw: "Vanilla (net/http)", kind: "vanilla",  url: "https://go-vanilla-REPLACE-ME.run.app" },
+    { lang: "Go",      fw: "Gin",            kind: "framework", url: "https://go-gin-REPLACE-ME.run.app" },
+    { lang: "Java",    fw: "Vanilla (HttpServer)", kind: "vanilla", url: "https://java-vanilla-REPLACE-ME.run.app" },
+    { lang: "Java",    fw: "Spring Boot",     kind: "framework", url: "https://java-spring-REPLACE-ME.run.app" },
+    { lang: "Ruby",    fw: "Vanilla (WEBrick)", kind: "vanilla", url: "https://ruby-vanilla-REPLACE-ME.run.app" },
+    { lang: "Ruby",    fw: "Sinatra",         kind: "framework", url: "https://ruby-sinatra-REPLACE-ME.run.app" },
+  ];
+</script>
+
+<div class="win">
+  <div class="title">
+    <span>Multi-Language ToDo - Program Manager</span>
+    <span><span class="b">_</span><span class="b">[ ]</span><span class="b">x</span></span>
+  </div>
+  <div class="menu"><span><u>F</u>ile</span><span><u>O</u>ptions</span><span><u>W</u>indow</span><span><u>H</u>elp</span></div>
+  <div class="body">
+    <p class="intro">
+      同じ <b>ToDo アプリ</b>を 5 つの言語 &times; (バニラ / フレームワーク) = <b>10 通り</b>で実装しました。<br>
+      アイコンをダブルクリックすると各バックエンドが別タブで開きます。各画面では実際に CRUD を行え、
+      <b>DB 接続</b>と <b>INSERT</b> にかかった時間 (ms) を計測して表示します。
+    </p>
+    <div id="groups"></div>
+    <p class="note">
+      ※ 各バックエンドは独立した Cloud Run サービスで、同一の Cloud SQL (PostgreSQL) <code>todos</code> テーブルを共有します。<br>
+      ※ URL 未設定 (<code>REPLACE-ME</code>) のアイコンはまだデプロイ前です。<code>main.html</code> 先頭の <code>SERVICES</code> を編集してください。
+    </p>
+  </div>
+  <div class="status">
+    <span id="count">0 サービス</span>
+    <span>Cloud Run + Cloud SQL (PostgreSQL)</span>
+  </div>
+</div>
+
+<script>
+  function open(url){
+    if(url.indexOf("REPLACE-ME") !== -1){
+      alert("このサービスの URL はまだ設定されていません。\nmain.html 先頭の SERVICES 配列に Cloud Run の URL を設定してください。");
+      return;
+    }
+    window.open(url, "_blank", "noopener");
+  }
+
+  const groups = {};
+  SERVICES.forEach(s => { (groups[s.lang] = groups[s.lang] || []).push(s); });
+
+  const host = document.getElementById("groups");
+  Object.keys(groups).forEach(lang => {
+    const g = document.createElement("div"); g.className = "group";
+    const h = document.createElement("h2"); h.textContent = lang; g.appendChild(h);
+    const icons = document.createElement("div"); icons.className = "icons";
+    groups[lang].forEach(s => {
+      const a = document.createElement("div");
+      a.className = "icon" + (s.kind === "framework" ? " fw" : "");
+      a.tabIndex = 0;
+      a.title = s.url;
+      a.innerHTML =
+        '<div class="glyph"></div>' +
+        '<div class="lang">' + s.lang + '</div>' +
+        '<div class="fwname">' + s.fw + '</div>' +
+        '<div class="kind">' + (s.kind === "vanilla" ? "標準ライブラリ" : "フレームワーク") + '</div>';
+      a.ondblclick = () => open(s.url);
+      a.onkeydown = (e) => { if(e.key === "Enter") open(s.url); };
+      icons.appendChild(a);
+    });
+    g.appendChild(icons); host.appendChild(g);
+  });
+  document.getElementById("count").textContent = SERVICES.length + " サービス";
+</script>
+
+</body>
+</html>

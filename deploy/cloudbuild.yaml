@@ -1,0 +1,50 @@
+# 単一サービスをビルドして Cloud Run にデプロイする Cloud Build 構成 (任意・CI 用)。
+# deploy/deploy.sh の方が簡単なので、まずはそちらを推奨。
+#
+# 事前に Artifact Registry リポジトリを 1 度だけ作成しておくこと:
+#   gcloud artifacts repositories create cloud-run-source-deploy \
+#     --repository-format=docker --location=$REGION
+#
+# 使い方 (サービスのディレクトリを指定して submit する):
+#   gcloud builds submit services/node-express \
+#     --config deploy/cloudbuild.yaml \
+#     --substitutions=_SERVICE=node-express,_REGION=asia-northeast1,_CONN=PROJECT:REGION:INSTANCE,_DB_NAME=tododb,_DB_USER=todo,_DB_PASSWORD=secret
+#
+# java-* の場合は末尾に Socket Factory 用の環境変数を追加する:
+#   ...,_EXTRA_ENV=",INSTANCE_CONNECTION_NAME=PROJECT:REGION:INSTANCE"
+
+substitutions:
+  _SERVICE: ""
+  _REGION: "asia-northeast1"
+  _CONN: ""
+  _DB_NAME: "tododb"
+  _DB_USER: "todo"
+  _DB_PASSWORD: ""
+  _EXTRA_ENV: ""
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --add-cloudsql-instances=${_CONN}
+      - --set-env-vars=DB_NAME=${_DB_NAME},DB_USER=${_DB_USER},DB_PASSWORD=${_DB_PASSWORD},DB_HOST=/cloudsql/${_CONN}${_EXTRA_ENV}
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}
