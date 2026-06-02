@@ -1,0 +1,23 @@
+# Java / Maven
+**/target/
+
+# Python
+**/__pycache__/
+*.pyc
+
+# Node
+**/node_modules/
+
+# Ruby
+**/.bundle/
+**/vendor/bundle/
+
+# Go (バイナリはビルド成果物。go.mod / go.sum はコミットする)
+**/*.test
+
+# OS / editor
+.DS_Store
+*.swp
+
+# Maven shade plugin
+**/dependency-reduced-pom.xml
